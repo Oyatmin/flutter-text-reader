@@ -1,11 +1,11 @@
-import 'package:flutter_text_reader/databases/groups_db.dart';
-import 'package:flutter_text_reader/databases/tags_db.dart';
+import 'package:flutter_text_reader/databases/group_db.dart';
+import 'package:flutter_text_reader/databases/tag_db.dart';
 import 'package:isar/isar.dart';
 
-part 'texts_db.g.dart';
+part 'text_db.g.dart';
 
 @collection
-class TextsDB {
+class TextDB {
   Id id = Isar.autoIncrement;
   late String title;
   late String filePath;
@@ -19,15 +19,16 @@ class TextsDB {
   int rate = 0;
   bool favorite = false;
 
-  BookmarkDB? bookmarkDB;
+  Bookmark? bookmark;
 
-  final tags = IsarLinks<TagsDB>();
+  final tags = IsarLinks<TagDB>();
 
   @Backlink(to: "texts")
-  final groups = IsarLinks<GroupsDB>();
+  final groups = IsarLinks<GroupDB>();
 }
 
-class BookmarkDB {
+@embedded
+class Bookmark {
   List<String>? bookmarkName;
   List<int>? position;
 }
