@@ -1,17 +1,12 @@
 import 'package:flutter_text_reader/databases/texts_db.dart';
 import 'package:isar/isar.dart';
 
-part 'tags_db.g.dart';
+part 'groups_db.g.dart';
 
 @collection
-class TagsDB {
+class GroupsDB {
   Id id = Isar.autoIncrement;
-  late String tagName;
-  bool? female;
-  bool? male;
-  bool? genre;
-  bool favorite = false;
+  late String name;
 
-  @Backlink(to: "tags")
   final texts = IsarLinks<TextsDB>();
 }
