@@ -27,6 +27,7 @@ class _TextListState extends State<TextListPage> {
   @override
   void initState() {
     super.initState();
+    _initializeIsar();
   }
 
   Future<void> _initializeIsar() async {
@@ -73,13 +74,28 @@ class _TextListState extends State<TextListPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverAppBar(
-            snap: true,
-            floating: true,
-            title: Text('목록'),
-            pinned: false,
+          Stack(
+            children: [
+              const SliverAppBar(
+                snap: true,
+                floating: true,
+                title: Text('목록'),
+                pinned: false,
+              ),
+              Positioned(
+                top: 50,
+                right: 50,
+                child: IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add_rounded),
+                ),
+              ),
+            ],
           ),
-          FileSliverListWidget(),
+          FileSliverListWidget(
+            isar: isar!,
+            displayItems: displayItems,
+          ),
         ],
       ),
     );
