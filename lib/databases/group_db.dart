@@ -7,6 +7,7 @@ part 'group_db.g.dart';
 class GroupDB {
   Id id = Isar.autoIncrement;
   late String name;
+  late String colorHex;
 
   final texts = IsarLinks<TextDB>();
 }

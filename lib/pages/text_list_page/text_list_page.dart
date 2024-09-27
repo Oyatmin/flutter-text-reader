@@ -23,6 +23,7 @@ class _TextListState extends State<TextListPage> {
 
   late int itemCount;
   late List<TextDB> displayItems;
+  late List<GroupDB> displayGroups;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _TextListState extends State<TextListPage> {
 
       itemCount = await isar!.textDBs.count();
       displayItems = await isar!.textDBs.where().findAll();
+      displayGroups = await isar!.groupDBs.where().findAll();
 
       setState(() {
         isLoading = false; // Loading complete
@@ -92,12 +94,59 @@ class _TextListState extends State<TextListPage> {
               ),
             ],
           ),
+          // TODO: Group chips
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                for (GroupDB group in displayGroups)
+                  _GroupChip(
+                      label: group.name,
+                      color: Color(int.parse(group.colorHex, radix: 16)),
+                      onPressed: () {}),
+                IconButton(
+                  onPressed: () {
+                    //add_group_page로
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                ),
+              ],
+            ),
+          ),
           FileSliverListWidget(
             isar: isar!,
             displayItems: displayItems,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _GroupChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+  const _GroupChip(
+      {super.key,
+      required this.label,
+      required this.color,
+      required this.onPressed});
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      labelPadding: const EdgeInsets.all(2.0),
+      avatar: CircleAvatar(
+        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        child: Text(label[0]),
+      ),
+      label: Text(label),
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(style: BorderStyle.none),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
+      backgroundColor: color,
+      onPressed: onPressed,
     );
   }
 }
