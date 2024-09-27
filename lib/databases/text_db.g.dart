@@ -36,7 +36,7 @@ const TextDBSchema = CollectionSchema(
     r'filePath': PropertySchema(
       id: 3,
       name: r'filePath',
-      type: IsarType.string,
+      type: IsarType.stringList,
     ),
     r'group': PropertySchema(
       id: 4,
@@ -91,13 +91,6 @@ const TextDBSchema = CollectionSchema(
       name: r'tags',
       target: r'TagDB',
       single: false,
-    ),
-    r'groups': LinkSchema(
-      id: 6991698625767825936,
-      name: r'groups',
-      target: r'GroupDB',
-      single: false,
-      linkName: r'texts',
     )
   },
   embeddedSchemas: {r'Bookmark': BookmarkSchema},
@@ -127,6 +120,12 @@ int _textDBEstimateSize(
     }
   }
   bytesCount += 3 + object.filePath.length * 3;
+  {
+    for (var i = 0; i < object.filePath.length; i++) {
+      final value = object.filePath[i];
+      bytesCount += value.length * 3;
+    }
+  }
   {
     final value = object.group;
     if (value != null) {
@@ -169,7 +168,7 @@ void _textDBSerialize(
     object.bookmark,
   );
   writer.writeBool(offsets[2], object.favorite);
-  writer.writeString(offsets[3], object.filePath);
+  writer.writeStringList(offsets[3], object.filePath);
   writer.writeString(offsets[4], object.group);
   writer.writeString(offsets[5], object.imagePath);
   writer.writeString(offsets[6], object.imageURL);
@@ -194,7 +193,7 @@ TextDB _textDBDeserialize(
     allOffsets,
   );
   object.favorite = reader.readBool(offsets[2]);
-  object.filePath = reader.readString(offsets[3]);
+  object.filePath = reader.readStringList(offsets[3]) ?? [];
   object.group = reader.readStringOrNull(offsets[4]);
   object.id = id;
   object.imagePath = reader.readStringOrNull(offsets[5]);
@@ -225,7 +224,7 @@ P _textDBDeserializeProp<P>(
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
@@ -252,13 +251,12 @@ Id _textDBGetId(TextDB object) {
 }
 
 List<IsarLinkBase<dynamic>> _textDBGetLinks(TextDB object) {
-  return [object.tags, object.groups];
+  return [object.tags];
 }
 
 void _textDBAttach(IsarCollection<dynamic> col, Id id, TextDB object) {
   object.id = id;
   object.tags.attach(col, col.isar.collection<TagDB>(), r'tags', id);
-  object.groups.attach(col, col.isar.collection<GroupDB>(), r'groups', id);
 }
 
 extension TextDBQueryWhereSort on QueryBuilder<TextDB, TextDB, QWhere> {
@@ -509,7 +507,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathEqualTo(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -522,7 +520,8 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathGreaterThan(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition>
+      filePathElementGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -537,7 +536,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathLessThan(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -552,7 +551,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathBetween(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -571,7 +570,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathStartsWith(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -584,7 +583,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathEndsWith(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -597,7 +596,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathContains(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -609,7 +608,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathMatches(
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -621,7 +620,7 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathIsEmpty() {
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathElementIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'filePath',
@@ -630,12 +629,97 @@ extension TextDBQueryFilter on QueryBuilder<TextDB, TextDB, QFilterCondition> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathIsNotEmpty() {
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition>
+      filePathElementIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'filePath',
         value: '',
       ));
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> filePathLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'filePath',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1663,62 +1747,6 @@ extension TextDBQueryLinks on QueryBuilder<TextDB, TextDB, QFilterCondition> {
           r'tags', lower, includeLower, upper, includeUpper);
     });
   }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groups(
-      FilterQuery<GroupDB> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'groups');
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groups', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groups', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groups', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groups', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groups', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterFilterCondition> groupsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'groups', lower, includeLower, upper, includeUpper);
-    });
-  }
 }
 
 extension TextDBQuerySortBy on QueryBuilder<TextDB, TextDB, QSortBy> {
@@ -1743,18 +1771,6 @@ extension TextDBQuerySortBy on QueryBuilder<TextDB, TextDB, QSortBy> {
   QueryBuilder<TextDB, TextDB, QAfterSortBy> sortByFavoriteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'favorite', Sort.desc);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterSortBy> sortByFilePath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'filePath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterSortBy> sortByFilePathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'filePath', Sort.desc);
     });
   }
 
@@ -1877,18 +1893,6 @@ extension TextDBQuerySortThenBy on QueryBuilder<TextDB, TextDB, QSortThenBy> {
   QueryBuilder<TextDB, TextDB, QAfterSortBy> thenByFavoriteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'favorite', Sort.desc);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterSortBy> thenByFilePath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'filePath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TextDB, TextDB, QAfterSortBy> thenByFilePathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'filePath', Sort.desc);
     });
   }
 
@@ -2015,10 +2019,9 @@ extension TextDBQueryWhereDistinct on QueryBuilder<TextDB, TextDB, QDistinct> {
     });
   }
 
-  QueryBuilder<TextDB, TextDB, QDistinct> distinctByFilePath(
-      {bool caseSensitive = true}) {
+  QueryBuilder<TextDB, TextDB, QDistinct> distinctByFilePath() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'filePath', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'filePath');
     });
   }
 
@@ -2101,7 +2104,7 @@ extension TextDBQueryProperty on QueryBuilder<TextDB, TextDB, QQueryProperty> {
     });
   }
 
-  QueryBuilder<TextDB, String, QQueryOperations> filePathProperty() {
+  QueryBuilder<TextDB, List<String>, QQueryOperations> filePathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'filePath');
     });

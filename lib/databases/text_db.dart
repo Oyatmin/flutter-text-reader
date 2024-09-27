@@ -1,4 +1,3 @@
-import 'package:flutter_text_reader/databases/group_db.dart';
 import 'package:flutter_text_reader/databases/tag_db.dart';
 import 'package:isar/isar.dart';
 
@@ -8,7 +7,7 @@ part 'text_db.g.dart';
 class TextDB {
   Id id = Isar.autoIncrement;
   late String title;
-  late String filePath;
+  late List<String> filePath;
   DateTime? lastReadDate;
   int? lastReadPosition;
   String? group;
@@ -22,9 +21,6 @@ class TextDB {
   Bookmark? bookmark;
 
   final tags = IsarLinks<TagDB>();
-
-  @Backlink(to: "texts")
-  final groups = IsarLinks<GroupDB>();
 }
 
 @embedded

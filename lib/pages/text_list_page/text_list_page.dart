@@ -1,3 +1,8 @@
+// TODO: 텍스트 추가 기능
+// TODO: 수정 기능 추가
+// TODO:
+// TODO: 여러화 등록 순서 변경 기능
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
@@ -8,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_text_reader/pages/text_list_page/widget/file_sliver_widget.dart';
 
 // isar
-import 'package:flutter_text_reader/databases/group_db.dart';
 import 'package:flutter_text_reader/databases/text_db.dart';
 import 'package:flutter_text_reader/databases/tag_db.dart';
 
@@ -25,7 +29,7 @@ class _TextListState extends State<TextListPage> {
 
   late int itemCount;
   late List<TextDB> displayItems;
-  late List<GroupDB> displayGroups;
+  late List<TagDB> displayGenreTags;
 
   @override
   void initState() {
@@ -40,7 +44,7 @@ class _TextListState extends State<TextListPage> {
       debugPrint("Application directory: ${dir.path}");
 
       isar = await Isar.open(
-        [TextDBSchema, TagDBSchema, GroupDBSchema],
+        [TextDBSchema, TagDBSchema],
         directory: dir.path,
         inspector: true,
       );
@@ -48,7 +52,7 @@ class _TextListState extends State<TextListPage> {
 
       itemCount = await isar!.textDBs.count();
       displayItems = await isar!.textDBs.where().findAll();
-      displayGroups = await isar!.groupDBs.where().findAll();
+      displayGenreTags = await isar!.tagDBs.filter().genreIsNotNull().findAll();
 
       setState(() {
         isLoading = false; // Loading complete
@@ -70,7 +74,6 @@ class _TextListState extends State<TextListPage> {
           Center(
             child: CircularProgressIndicator(),
           ),
-          // Text('Loading...'),
         ],
       );
     }
@@ -78,15 +81,15 @@ class _TextListState extends State<TextListPage> {
       body: FileSliverWidget(
         isar: isar!,
         displayItems: displayItems,
-        displayGroups: displayGroups,
+        displayGenreTags: displayGenreTags,
       ),
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
         type: ExpandableFabType.fan,
-        overlayStyle: const ExpandableFabOverlayStyle(blur: 30.0),
+        overlayStyle: const ExpandableFabOverlayStyle(blur: 5.0),
         childrenAnimation: ExpandableFabAnimation.rotate,
         openButtonBuilder: RotateFloatingActionButtonBuilder(
-          child: const Icon(Icons.account_box_rounded),
+          child: const Icon(Icons.menu_rounded),
           fabSize: ExpandableFabSize.regular,
           shape: const CircleBorder(),
         ),

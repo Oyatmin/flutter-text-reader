@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_text_reader/databases/tag_db.dart';
 import 'package:isar/isar.dart';
 
 // isar
-import 'package:flutter_text_reader/databases/group_db.dart';
 import 'package:flutter_text_reader/databases/text_db.dart';
 
 class FileSliverWidget extends StatefulWidget {
   final Isar isar;
   final List<TextDB> displayItems;
-  final List<GroupDB> displayGroups;
+  final List<TagDB> displayGenreTags;
   const FileSliverWidget(
       {super.key,
       required this.isar,
       required this.displayItems,
-      required this.displayGroups});
+      required this.displayGenreTags});
 
   @override
   State<FileSliverWidget> createState() => _FileSliverWidgetState();
@@ -30,32 +30,49 @@ class _FileSliverWidgetState extends State<FileSliverWidget> {
           snap: true,
           floating: true,
           title: const Text('목록'), // Group에 따라 변화
-          pinned: false,
+          // pinned: false,
           toolbarHeight: 50.0,
           backgroundColor: Theme.of(context).colorScheme.onPrimary,
         ),
         // Group chips
         SliverToBoxAdapter(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                for (GroupDB group in widget.displayGroups)
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(6, 3, 3, 6),
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
                   _GroupChip(
-                      label: group.name,
-                      backgroudColor:
-                          Color(int.parse(group.backgroudColorHex, radix: 16)),
-                      textColor:
-                          Color(int.parse(group.textColorHex, radix: 16)),
-                      onPressed: () {}),
-                IconButton(
-                  onPressed: () {
-                    //add_group_page로
-                  },
-                  icon: const Icon(Icons.add_rounded),
-                ),
-              ],
+                    label: 'All',
+                    backgroudColor: Colors.grey,
+                    textColor: Colors.white,
+                    onPressed: () {},
+                  ),
+                  for (TagDB tag in widget.displayGenreTags)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(3, 0, 3, 0),
+                      child: _GroupChip(
+                        label: tag.tagName,
+                        backgroudColor: Color(
+                            int.parse(tag.genre!.backgroudColorHex, radix: 16)),
+                        textColor: Color(
+                            int.parse(tag.genre!.textColorHex, radix: 16)),
+                        onPressed: () {},
+                      ),
+                    ),
+                  const SizedBox(
+                    width: 6.0,
+                  ),
+                  _GroupChip(
+                    label: '기타',
+                    backgroudColor: Colors.grey,
+                    textColor: Colors.white,
+                    onPressed: () {},
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -83,7 +100,7 @@ class _FileSliverWidgetState extends State<FileSliverWidget> {
                                 // chips
                                 for (var tag in widget.displayItems[index].tags)
                                   _tagChip(tag.tagName, tag.male, tag.female,
-                                      tag.genre, Colors.grey)
+                                      tag.genre as bool?, Colors.grey)
                               ],
                             ),
                           )),
@@ -167,7 +184,6 @@ class _GroupChip extends StatelessWidget {
   final Color textColor;
   final VoidCallback onPressed;
   const _GroupChip({
-    super.key,
     required this.label,
     required this.backgroudColor,
     required this.textColor,
@@ -177,9 +193,13 @@ class _GroupChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ActionChip(
       labelPadding: const EdgeInsets.all(2.0),
-      avatar: CircleAvatar(
-        child: Text(label[0]),
-      ),
+      // avatar: CircleAvatar(
+      //   backgroundColor: Colors.white,
+      //   child: Text(
+      //     label[0],
+      //     style: TextStyle(color: backgroudColor),
+      //   ),
+      // ),
       label: Text(
         label,
         style: TextStyle(color: textColor),

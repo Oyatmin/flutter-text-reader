@@ -30,7 +30,8 @@ const TagDBSchema = CollectionSchema(
     r'genre': PropertySchema(
       id: 2,
       name: r'genre',
-      type: IsarType.bool,
+      type: IsarType.object,
+      target: r'Genre',
     ),
     r'male': PropertySchema(
       id: 3,
@@ -58,7 +59,7 @@ const TagDBSchema = CollectionSchema(
       linkName: r'tags',
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {r'Genre': GenreSchema},
   getId: _tagDBGetId,
   getLinks: _tagDBGetLinks,
   attach: _tagDBAttach,
@@ -71,6 +72,13 @@ int _tagDBEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.genre;
+    if (value != null) {
+      bytesCount +=
+          3 + GenreSchema.estimateSize(value, allOffsets[Genre]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.tagName.length * 3;
   return bytesCount;
 }
@@ -83,7 +91,12 @@ void _tagDBSerialize(
 ) {
   writer.writeBool(offsets[0], object.favorite);
   writer.writeBool(offsets[1], object.female);
-  writer.writeBool(offsets[2], object.genre);
+  writer.writeObject<Genre>(
+    offsets[2],
+    allOffsets,
+    GenreSchema.serialize,
+    object.genre,
+  );
   writer.writeBool(offsets[3], object.male);
   writer.writeString(offsets[4], object.tagName);
 }
@@ -97,7 +110,11 @@ TagDB _tagDBDeserialize(
   final object = TagDB();
   object.favorite = reader.readBool(offsets[0]);
   object.female = reader.readBoolOrNull(offsets[1]);
-  object.genre = reader.readBoolOrNull(offsets[2]);
+  object.genre = reader.readObjectOrNull<Genre>(
+    offsets[2],
+    GenreSchema.deserialize,
+    allOffsets,
+  );
   object.id = id;
   object.male = reader.readBoolOrNull(offsets[3]);
   object.tagName = reader.readString(offsets[4]);
@@ -116,7 +133,11 @@ P _tagDBDeserializeProp<P>(
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readObjectOrNull<Genre>(
+        offset,
+        GenreSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 3:
       return (reader.readBoolOrNull(offset)) as P;
     case 4:
@@ -262,15 +283,6 @@ extension TagDBQueryFilter on QueryBuilder<TagDB, TagDB, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'genre',
-      ));
-    });
-  }
-
-  QueryBuilder<TagDB, TagDB, QAfterFilterCondition> genreEqualTo(bool? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'genre',
-        value: value,
       ));
     });
   }
@@ -483,7 +495,14 @@ extension TagDBQueryFilter on QueryBuilder<TagDB, TagDB, QFilterCondition> {
   }
 }
 
-extension TagDBQueryObject on QueryBuilder<TagDB, TagDB, QFilterCondition> {}
+extension TagDBQueryObject on QueryBuilder<TagDB, TagDB, QFilterCondition> {
+  QueryBuilder<TagDB, TagDB, QAfterFilterCondition> genre(
+      FilterQuery<Genre> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'genre');
+    });
+  }
+}
 
 extension TagDBQueryLinks on QueryBuilder<TagDB, TagDB, QFilterCondition> {
   QueryBuilder<TagDB, TagDB, QAfterFilterCondition> texts(
@@ -568,18 +587,6 @@ extension TagDBQuerySortBy on QueryBuilder<TagDB, TagDB, QSortBy> {
     });
   }
 
-  QueryBuilder<TagDB, TagDB, QAfterSortBy> sortByGenre() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'genre', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TagDB, TagDB, QAfterSortBy> sortByGenreDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'genre', Sort.desc);
-    });
-  }
-
   QueryBuilder<TagDB, TagDB, QAfterSortBy> sortByMale() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'male', Sort.asc);
@@ -627,18 +634,6 @@ extension TagDBQuerySortThenBy on QueryBuilder<TagDB, TagDB, QSortThenBy> {
   QueryBuilder<TagDB, TagDB, QAfterSortBy> thenByFemaleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'female', Sort.desc);
-    });
-  }
-
-  QueryBuilder<TagDB, TagDB, QAfterSortBy> thenByGenre() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'genre', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TagDB, TagDB, QAfterSortBy> thenByGenreDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'genre', Sort.desc);
     });
   }
 
@@ -692,12 +687,6 @@ extension TagDBQueryWhereDistinct on QueryBuilder<TagDB, TagDB, QDistinct> {
     });
   }
 
-  QueryBuilder<TagDB, TagDB, QDistinct> distinctByGenre() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'genre');
-    });
-  }
-
   QueryBuilder<TagDB, TagDB, QDistinct> distinctByMale() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'male');
@@ -731,7 +720,7 @@ extension TagDBQueryProperty on QueryBuilder<TagDB, TagDB, QQueryProperty> {
     });
   }
 
-  QueryBuilder<TagDB, bool?, QQueryOperations> genreProperty() {
+  QueryBuilder<TagDB, Genre?, QQueryOperations> genreProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'genre');
     });
@@ -749,3 +738,346 @@ extension TagDBQueryProperty on QueryBuilder<TagDB, TagDB, QQueryProperty> {
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const GenreSchema = Schema(
+  name: r'Genre',
+  id: -453881181692258612,
+  properties: {
+    r'backgroudColorHex': PropertySchema(
+      id: 0,
+      name: r'backgroudColorHex',
+      type: IsarType.string,
+    ),
+    r'textColorHex': PropertySchema(
+      id: 1,
+      name: r'textColorHex',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _genreEstimateSize,
+  serialize: _genreSerialize,
+  deserialize: _genreDeserialize,
+  deserializeProp: _genreDeserializeProp,
+);
+
+int _genreEstimateSize(
+  Genre object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.backgroudColorHex.length * 3;
+  bytesCount += 3 + object.textColorHex.length * 3;
+  return bytesCount;
+}
+
+void _genreSerialize(
+  Genre object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.backgroudColorHex);
+  writer.writeString(offsets[1], object.textColorHex);
+}
+
+Genre _genreDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = Genre();
+  object.backgroudColorHex = reader.readString(offsets[0]);
+  object.textColorHex = reader.readString(offsets[1]);
+  return object;
+}
+
+P _genreDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension GenreQueryFilter on QueryBuilder<Genre, Genre, QFilterCondition> {
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition>
+      backgroudColorHexGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'backgroudColorHex',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'backgroudColorHex',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> backgroudColorHexIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroudColorHex',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition>
+      backgroudColorHexIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'backgroudColorHex',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'textColorHex',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'textColorHex',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textColorHex',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Genre, Genre, QAfterFilterCondition> textColorHexIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'textColorHex',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension GenreQueryObject on QueryBuilder<Genre, Genre, QFilterCondition> {}

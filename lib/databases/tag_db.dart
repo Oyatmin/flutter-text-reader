@@ -9,9 +9,16 @@ class TagDB {
   late String tagName;
   bool? female;
   bool? male;
-  bool? genre;
   bool favorite = false;
+
+  Genre? genre;
 
   @Backlink(to: "tags")
   final texts = IsarLinks<TextDB>();
+}
+
+@embedded
+class Genre {
+  late String backgroudColorHex;
+  late String textColorHex;
 }
