@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -94,7 +95,7 @@ class _TextListState extends State<TextListPage> {
               ),
             ],
           ),
-          // TODO: Group chips
+          // Group chips
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Row(
@@ -102,7 +103,10 @@ class _TextListState extends State<TextListPage> {
                 for (GroupDB group in displayGroups)
                   _GroupChip(
                       label: group.name,
-                      color: Color(int.parse(group.colorHex, radix: 16)),
+                      backgroudColor:
+                          Color(int.parse(group.backgroudColorHex, radix: 16)),
+                      textColor:
+                          Color(int.parse(group.textColorHex, radix: 16)),
                       onPressed: () {}),
                 IconButton(
                   onPressed: () {
@@ -119,33 +123,68 @@ class _TextListState extends State<TextListPage> {
           ),
         ],
       ),
+      floatingActionButtonLocation: ExpandableFab.location,
+      floatingActionButton: ExpandableFab(
+        type: ExpandableFabType.fan,
+        overlayStyle: const ExpandableFabOverlayStyle(blur: 30.0),
+        childrenAnimation: ExpandableFabAnimation.rotate,
+        openButtonBuilder: RotateFloatingActionButtonBuilder(
+          child: const Icon(Icons.account_box_rounded),
+          fabSize: ExpandableFabSize.regular,
+          shape: const CircleBorder(),
+        ),
+        closeButtonBuilder: RotateFloatingActionButtonBuilder(
+          child: const Icon(Icons.close_rounded),
+          fabSize: ExpandableFabSize.regular,
+          shape: const CircleBorder(),
+        ),
+        children: [
+          FloatingActionButton.small(
+            onPressed: () {},
+            child: const Icon(Icons.add_rounded),
+          ),
+          FloatingActionButton.small(
+            onPressed: () {},
+            child: const Icon(Icons.search_rounded),
+          ),
+          FloatingActionButton.small(
+            onPressed: () {},
+            child: const Icon(Icons.edit_rounded),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _GroupChip extends StatelessWidget {
   final String label;
-  final Color color;
+  final Color backgroudColor;
+  final Color textColor;
   final VoidCallback onPressed;
-  const _GroupChip(
-      {super.key,
-      required this.label,
-      required this.color,
-      required this.onPressed});
+  const _GroupChip({
+    super.key,
+    required this.label,
+    required this.backgroudColor,
+    required this.textColor,
+    required this.onPressed,
+  });
   @override
   Widget build(BuildContext context) {
     return ActionChip(
       labelPadding: const EdgeInsets.all(2.0),
       avatar: CircleAvatar(
-        backgroundColor: Color.fromARGB(0, 0, 0, 0),
         child: Text(label[0]),
       ),
-      label: Text(label),
+      label: Text(
+        label,
+        style: TextStyle(color: textColor),
+      ),
       shape: const RoundedRectangleBorder(
         side: BorderSide(style: BorderStyle.none),
         borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
-      backgroundColor: color,
+      backgroundColor: backgroudColor,
       onPressed: onPressed,
     );
   }

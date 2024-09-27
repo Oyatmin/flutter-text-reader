@@ -17,9 +17,19 @@ const GroupDBSchema = CollectionSchema(
   name: r'GroupDB',
   id: 4033181636416885586,
   properties: {
-    r'name': PropertySchema(
+    r'backgroudColorHex': PropertySchema(
       id: 0,
+      name: r'backgroudColorHex',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 1,
       name: r'name',
+      type: IsarType.string,
+    ),
+    r'textColorHex': PropertySchema(
+      id: 2,
+      name: r'textColorHex',
       type: IsarType.string,
     )
   },
@@ -50,7 +60,9 @@ int _groupDBEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.backgroudColorHex.length * 3;
   bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.textColorHex.length * 3;
   return bytesCount;
 }
 
@@ -60,7 +72,9 @@ void _groupDBSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.name);
+  writer.writeString(offsets[0], object.backgroudColorHex);
+  writer.writeString(offsets[1], object.name);
+  writer.writeString(offsets[2], object.textColorHex);
 }
 
 GroupDB _groupDBDeserialize(
@@ -70,8 +84,10 @@ GroupDB _groupDBDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = GroupDB();
+  object.backgroudColorHex = reader.readString(offsets[0]);
   object.id = id;
-  object.name = reader.readString(offsets[0]);
+  object.name = reader.readString(offsets[1]);
+  object.textColorHex = reader.readString(offsets[2]);
   return object;
 }
 
@@ -83,6 +99,10 @@ P _groupDBDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -179,6 +199,142 @@ extension GroupDBQueryWhere on QueryBuilder<GroupDB, GroupDB, QWhereClause> {
 
 extension GroupDBQueryFilter
     on QueryBuilder<GroupDB, GroupDB, QFilterCondition> {
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'backgroudColorHex',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'backgroudColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'backgroudColorHex',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroudColorHex',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      backgroudColorHexIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'backgroudColorHex',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -360,6 +516,137 @@ extension GroupDBQueryFilter
       ));
     });
   }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'textColorHex',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'textColorHex',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'textColorHex',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition> textColorHexIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'textColorHex',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterFilterCondition>
+      textColorHexIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'textColorHex',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension GroupDBQueryObject
@@ -425,6 +712,18 @@ extension GroupDBQueryLinks
 }
 
 extension GroupDBQuerySortBy on QueryBuilder<GroupDB, GroupDB, QSortBy> {
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> sortByBackgroudColorHex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroudColorHex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> sortByBackgroudColorHexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroudColorHex', Sort.desc);
+    });
+  }
+
   QueryBuilder<GroupDB, GroupDB, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -436,10 +735,34 @@ extension GroupDBQuerySortBy on QueryBuilder<GroupDB, GroupDB, QSortBy> {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> sortByTextColorHex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textColorHex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> sortByTextColorHexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textColorHex', Sort.desc);
+    });
+  }
 }
 
 extension GroupDBQuerySortThenBy
     on QueryBuilder<GroupDB, GroupDB, QSortThenBy> {
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> thenByBackgroudColorHex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroudColorHex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> thenByBackgroudColorHexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroudColorHex', Sort.desc);
+    });
+  }
+
   QueryBuilder<GroupDB, GroupDB, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -463,14 +786,41 @@ extension GroupDBQuerySortThenBy
       return query.addSortBy(r'name', Sort.desc);
     });
   }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> thenByTextColorHex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textColorHex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QAfterSortBy> thenByTextColorHexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'textColorHex', Sort.desc);
+    });
+  }
 }
 
 extension GroupDBQueryWhereDistinct
     on QueryBuilder<GroupDB, GroupDB, QDistinct> {
+  QueryBuilder<GroupDB, GroupDB, QDistinct> distinctByBackgroudColorHex(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'backgroudColorHex',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<GroupDB, GroupDB, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<GroupDB, GroupDB, QDistinct> distinctByTextColorHex(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'textColorHex', caseSensitive: caseSensitive);
     });
   }
 }
@@ -483,9 +833,21 @@ extension GroupDBQueryProperty
     });
   }
 
+  QueryBuilder<GroupDB, String, QQueryOperations> backgroudColorHexProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'backgroudColorHex');
+    });
+  }
+
   QueryBuilder<GroupDB, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<GroupDB, String, QQueryOperations> textColorHexProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'textColorHex');
     });
   }
 }
