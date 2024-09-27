@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
 // widget
-import 'package:flutter_text_reader/pages/text_list_page/widget/file_sliver_list_widget.dart';
+import 'package:flutter_text_reader/pages/text_list_page/widget/file_sliver_widget.dart';
 
 // isar
 import 'package:flutter_text_reader/databases/group_db.dart';
@@ -69,59 +70,15 @@ class _TextListState extends State<TextListPage> {
           Center(
             child: CircularProgressIndicator(),
           ),
-          Text('Loading...'),
+          // Text('Loading...'),
         ],
       );
     }
     return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          Stack(
-            children: [
-              const SliverAppBar(
-                snap: true,
-                floating: true,
-                title: Text('목록'),
-                pinned: false,
-              ),
-              Positioned(
-                top: 50,
-                right: 50,
-                child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add_rounded),
-                ),
-              ),
-            ],
-          ),
-          // Group chips
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                for (GroupDB group in displayGroups)
-                  _GroupChip(
-                      label: group.name,
-                      backgroudColor:
-                          Color(int.parse(group.backgroudColorHex, radix: 16)),
-                      textColor:
-                          Color(int.parse(group.textColorHex, radix: 16)),
-                      onPressed: () {}),
-                IconButton(
-                  onPressed: () {
-                    //add_group_page로
-                  },
-                  icon: const Icon(Icons.add_rounded),
-                ),
-              ],
-            ),
-          ),
-          FileSliverListWidget(
-            isar: isar!,
-            displayItems: displayItems,
-          ),
-        ],
+      body: FileSliverWidget(
+        isar: isar!,
+        displayItems: displayItems,
+        displayGroups: displayGroups,
       ),
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
@@ -153,39 +110,6 @@ class _TextListState extends State<TextListPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _GroupChip extends StatelessWidget {
-  final String label;
-  final Color backgroudColor;
-  final Color textColor;
-  final VoidCallback onPressed;
-  const _GroupChip({
-    super.key,
-    required this.label,
-    required this.backgroudColor,
-    required this.textColor,
-    required this.onPressed,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return ActionChip(
-      labelPadding: const EdgeInsets.all(2.0),
-      avatar: CircleAvatar(
-        child: Text(label[0]),
-      ),
-      label: Text(
-        label,
-        style: TextStyle(color: textColor),
-      ),
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(style: BorderStyle.none),
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      backgroundColor: backgroudColor,
-      onPressed: onPressed,
     );
   }
 }
